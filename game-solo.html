@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chkobba - Mode Solo</title>
+    <meta name="description" content="Jouez à la Chkobba en mode Solo contre l'IA. Jeu de cartes tunisien gratuit.">
+    <meta name="theme-color" content="#0D4728">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icons/icon-96.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Titan One', cursive;
+            background: radial-gradient(circle at center, #1E7245 0%, #0D4728 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        #game-container {
+            height: 100vh;
+            height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle, #2d8a57 0%, #1a5e3a 100%);
+            position: relative;
+        }
+
+        @supports (height: 100dvh) {
+            #game-container { height: 100dvh; }
+        }
+
+        /* Shuffle overlay */
+        #shuffle-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            background: rgba(0,0,0,0.85);
+            perspective: 1200px;
+        }
+
+        .shuffle-cards {
+            display: grid;
+            grid-template-areas: "cards";
+            transform-style: preserve-3d;
+            list-style: none;
+            padding: 0;
+        }
+
+        .card-shuffle {
+            grid-area: cards;
+            width: 75px;
+            height: 110px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 6px;
+        }
+
+        /* Announcements */
+        .announcement {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            text-shadow: 3px 3px 15px rgba(0,0,0,0.8);
+            z-index: 2500;
+            pointer-events: none;
+            opacity: 0;
+            white-space: nowrap;
+            text-align: center;
+            width: 100%;
+        }
+
+        .text-green { color: #4CAF50; }
+        .text-red { color: #FF3B30; }
+
+        /* CPU Area */
+        .cpu-avatar-center {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
+        }
+
+        /* Score zones */
+        .score-zone {
+            width: 45px;
+            height: 60px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 5px;
+            background: rgba(0,0,0,0.25);
+            position: absolute;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cpu-score-zone { top: 80px; }
+        #player-score-zone { bottom: 170px; }
+
+        /* Deck zone */
+        .deck-zone {
+            position: absolute;
+            left: 20px;
+            width: 45px;
+            height: 60px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 5px;
+            background: rgba(0,0,0,0.25);
+            z-index: 11000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+        }
+
+        .deck-top { top: 80px; }
+        .deck-bottom { bottom: 170px; }
+
+        /* Badges */
+        .chkobba-badge {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 24px;
+            height: 24px;
+            background: #1976D2;
+            border: 1.5px solid #fff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            z-index: 1000;
+        }
+
+        .badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            background: #1976D2;
+            border: 1.5px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            color: white;
+            z-index: 10000;
+        }
+
+        /* Piles de score */
+        .pile-img {
+            position: absolute;
+            width: 30px;
+            height: 44px;
+            background-size: cover;
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .chkobba-marker {
+            transform: translate(-50%, -50%) rotate(160deg) !important;
+            top: 50% !important;
+            left: 35% !important;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        /* Table area */
+        .table-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #table-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: flex-start;
+            margin: 0 auto;
+            min-height: 120px;
+            max-width: 375px;
+            width: 100%;
+        }
+
+        .table-card {
+            width: 75px;
+            height: 110px;
+            flex: 0 0 75px;
+            border-radius: 8px;
+            background-size: cover;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+            will-change: transform, opacity;
+        }
+
+        /* Player area */
+        .player-area {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #player-hand {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 75px;
+            height: 110px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        #player-hand .card:hover {
+            transform: translateY(-15px) !important;
+            z-index: 10;
+        }
+
+        .deck-visual-card {
+            width: 26px;
+            height: 38px;
+            background-size: cover;
+            border-radius: 3px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Timer */
+        .player-turn-timer {
+            position: absolute;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .player-turn-timer.active { opacity: 1; }
+
+        .turn-timer-container {
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid #FFD700;
+            border-radius: 12px;
+            padding: 12px 20px;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .turn-message {
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .timer-bar {
+            height: 12px;
+            background: #444;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .timer-progress {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+            border-radius: 6px;
+            transition: width 0.1s linear;
+        }
+
+        .timer-progress.warning {
+            background: linear-gradient(90deg, #FFA500 0%, #FF4444 100%);
+        }
+
+        .timer-progress.critical {
+            background: linear-gradient(90deg, #FF4444 0%, #CC0000 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 12000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #0D4728;
+            border: 3px solid #FFD700;
+            padding: 30px 25px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 310px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        table th {
+            color: #FFD700;
+            padding: 10px;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        table td { padding: 10px; font-family: sans-serif; font-weight: bold; }
+        .win-row { background: rgba(255, 215, 0, 0.1); }
+
+        .choice-btn {
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .choice-btn:hover { background: #FFD700; }
+
+        .modal-avatars-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        /* Flying cards */
+        .flying-card {
+            position: fixed;
+            z-index: 9999;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+            transform-style: preserve-3d;
+            will-change: transform, width, height, top, left;
+            border-radius: 6px;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        /* Quit button */
+        #btn-quit-game {
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top));
+            left: max(12px, env(safe-area-inset-left));
+            z-index: 20000;
+            width: 44px;
+            height: 44px;
+            background: rgba(0,0,0,0.55);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: white;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,.4);
+        }
+
+        #btn-quit-game:active {
+            transform: scale(0.95);
+            background: rgba(230,30,37,0.7);
+        }
+
+        /* Super powers */
+        #super-powers-btn {
+            position: fixed;
+            bottom: 20px;
+            right: max(20px, env(safe-area-inset-right));
+            width: 52px;
+            height: 52px;
+            background: rgba(0,0,0,0.75);
+            border: 2px solid #9C27B0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 15000;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(156,39,176,0.4);
+        }
+
+        #super-powers-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Toast */
+        .global-toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #FFD700;
+            border-radius: 30px;
+            padding: 10px 20px;
+            color: #FFD700;
+            font-family: 'Titan One', cursive;
+            font-size: 0.8rem;
+            z-index: 35000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 600px) {
+            .card { width: 70px; height: 102px; }
+            .table-card { width: 70px; height: 102px; flex: 0 0 70px; }
+            #table-cards { max-width: 280px; }
+            .player-turn-timer { bottom: 170px; }
+            .turn-timer-container { min-width: 160px; padding: 10px 15px; }
+            .turn-message { font-size: 1rem; }
+            .global-toast { white-space: normal; text-align: center; max-width: 80%; bottom: 80px; }
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            .card { width: 55px; height: 80px; }
+            .player-area { height: 120px; }
+            .table-card { width: 55px; height: 80px; flex: 0 0 55px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .flying-card { display: none !important; }
+            .card { transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Quit button -->
+<div id="btn-quit-game" onclick="showQuitModal()">✕</div>
+
+<!-- Quit confirmation modal -->
+<div id="quit-modal" style="display:none;position:fixed;inset:0;z-index:25000;background:rgba(0,0,0,0.88);justify-content:center;align-items:center;font-family:'Titan One',cursive;">
+    <div style="background:linear-gradient(160deg,#1a5e3a,#0a2a18);border:3px solid #FFD700;border-radius:22px;padding:28px 24px;max-width:340px;width:90%;text-align:center;">
+        <div style="font-size:2rem;margin-bottom:10px;">🚪</div>
+        <div style="color:#FFD700;font-size:1.15rem;margin-bottom:8px;">QUITTER LA PARTIE ?</div>
+        <div id="quit-modal-msg" style="color:rgba(255,255,255,0.6);font-size:0.78rem;margin-bottom:22px;">La partie sera abandonnée. Ta progression sera perdue.</div>
+        <div style="display:flex;gap:12px;">
+            <button onclick="hideQuitModal()" style="flex:1;padding:13px;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.2);border-radius:12px;color:white;font-family:'Titan One',cursive;cursor:pointer;">CONTINUER</button>
+            <button onclick="confirmQuit()" style="flex:1;padding:13px;background:#E61E25;border:none;border-radius:12px;color:white;font-family:'Titan One',cursive;cursor:pointer;">QUITTER ✕</button>
+        </div>
+    </div>
+</div>
+
+<!-- Shuffle overlay -->
+<div id="shuffle-overlay">
+    <ul class="shuffle-cards">
+        <li class="card-shuffle"></li><li class="card-shuffle"></li><li class="card-shuffle"></li>
+        <li class="card-shuffle"></li><li class="card-shuffle"></li><li class="card-shuffle"></li>
+        <li class="card-shuffle"></li><li class="card-shuffle"></li><li class="card-shuffle"></li>
+        <li class="card-shuffle"></li><li class="card-shuffle"></li><li class="card-shuffle"></li>
+    </ul>
+</div>
+
+<!-- Announcement -->
+<div id="announcement" class="announcement"></div>
+
+<!-- Timer -->
+<div id="player-turn-timer" class="player-turn-timer">
+    <div class="turn-timer-container">
+        <div class="turn-message">C'est ton tour !</div>
+        <div class="timer-bar"><div id="timer-progress" class="timer-progress"></div></div>
+        <div id="timer-text" class="timer-text">10s</div>
+    </div>
+</div>
+
+<!-- Main container -->
+<div id="game-container">
+    <!-- CPU area -->
+    <div class="cpu-avatar-center">
+        <div style="display:inline-flex;align-items:center;position:relative;padding-right:12px;">
+            <div style="position:relative;width:48px;height:48px;background:#e8f5e9;border:3px solid #1a1a1a;border-radius:12px;display:flex;justify-content:center;align-items:center;">
+                <video src="Assets/avatars/cpu0.webM" autoplay loop muted playsinline poster="Assets/avatars/cpu0.png" style="width:100%;height:100%;object-fit:cover;border-radius:9px;"></video>
+            </div>
+            <div style="margin-left:-10px;padding:4px 12px 4px 18px;background:#333;border:3px solid #1a1a1a;border-left:none;border-radius:0 8px 8px 0;font-family:'Segoe UI',sans-serif;font-size:11px;font-weight:900;color:#fff;">
+                <span id="cpu-name">INTERMÉDIAIRE</span>
+            </div>
+        </div>
+        <div id="cpu-hand-mini" style="display:flex;gap:3px;margin-top:5px"></div>
+    </div>
+
+    <!-- Deck -->
+    <div id="deck-zone" class="deck-zone">
+        <div class="deck-visual-card"></div>
+        <div id="deck-count-badge" class="badge">40</div>
+    </div>
+
+    <!-- Scores -->
+    <div class="score-zone" id="cpu-score-zone"><div id="cpu-chkobba-badge" class="chkobba-badge">0</div></div>
+    <div class="score-zone" id="player-score-zone"><div id="player-chkobba-badge" class="chkobba-badge">0</div></div>
+
+    <!-- Table -->
+    <main class="table-area"><div id="table-cards"></div></main>
+
+    <!-- Player hand -->
+    <footer class="player-area"><div id="player-hand"></div></footer>
+</div>
+
+<!-- Capture modal -->
+<div id="capture-modal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin:0;color:#FFD700">CHOISIR LA CAPTURE</h2>
+        <div id="choice-options" style="display:flex;flex-wrap:wrap;justify-content:center;gap:15px;margin-top:20px"></div>
+    </div>
+</div>
+
+<!-- Super powers modal -->
+<div id="superpowers-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:30000;align-items:center;justify-content:center;font-family:'Titan One',cursive;">
+    <div style="background:linear-gradient(160deg,#1a5e3a,#0a2a18);border:3px solid #FFD700;border-radius:24px;padding:20px;width:90%;max-width:380px;max-height:80vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="color:#FFD700;font-size:1.1rem;">⚡ SUPER POUVOIRS</div>
+            <button onclick="closeSuperPowersModal()" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;min-width:44px;">✕</button>
+        </div>
+        <div id="superpowers-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button onclick="closeSuperPowersModal();window.location.href='shop.html'" style="width:100%;margin-top:14px;padding:11px;background:#9C27B0;border:none;border-radius:12px;color:white;font-family:'Titan One',cursive;cursor:pointer;">🛒 ACHETER DES POUVOIRS</button>
+    </div>
+</div>
+
+<!-- Super powers button -->
+<div id="super-powers-btn" onclick="openSuperPowersModal()">
+    <span style="font-size:1.5rem;">⚡</span>
+    <span id="sp-indicator" style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#4CAF50;border:2px solid #0D4728;border-radius:50%;display:none;"></span>
+</div>
+
+<!-- Score modal -->
+<div id="score-modal" class="modal">
+    <div class="modal-content">
+        <div id="match-winner-text" style="color:#FFD700;margin-bottom:10px;"></div>
+        <div id="score-target-label" style="color:rgba(255,255,255,0.5);font-size:0.7rem;"></div>
+        <div id="modal-avatars" class="modal-avatars-container"></div>
+        <table>
+            <thead><tr><th style="text-align:left;">Critère</th><th>Toi</th><th>CPU</th></tr></thead>
+            <tbody id="score-table-body"></tbody>
+            <tfoot>
+                <tr style="border-top:2px solid #FFD700;font-size:1.2rem;">
+                    <td style="text-align:left;">SCORE TOTAL</td>
+                    <td id="total-player" style="color:#FFD700;">0</td>
+                    <td id="total-cpu" style="color:#FFD700;">0</td>
+                </tr>
+            </tfoot>
+        </table>
+        <button id="next-round-btn" style="padding:12px 25px;font-family:'Titan One';background:#FFD700;border:none;border-radius:8px;cursor:pointer;font-size:1rem;">SUIVANT</button>
+    </div>
+</div>
+
+<script type="module">
+// ============================================================
+// CHKOBA SOLO V5.1 – VERSION CORRIGÉE
+// ============================================================
+
+import { ProfileStore, ProfileUI, ModalManager, AudioEngine, CardStyleManager } from './src/main.js';
+import { ChkobbaGame } from './src/core/GameEngine.js';
+import { escapeHtml } from './src/core/Security.js';
+
+// ============================================================
+// INITIALISATION DU JEU
+// ============================================================
+
+let game = null;
+let currentGameState = 'loading';
+let selectedCombo = null;
+
+// Éléments DOM
+const tableCardsDiv = document.getElementById('table-cards');
+const playerHandDiv = document.getElementById('player-hand');
+const cpuHandDiv = document.getElementById('cpu-hand-mini');
+const deckCountBadge = document.getElementById('deck-count-badge');
+const playerChkobbaBadge = document.getElementById('player-chkobba-badge');
+const cpuChkobbaBadge = document.getElementById('cpu-chkobba-badge');
+const timerProgress = document.getElementById('timer-progress');
+const timerText = document.getElementById('timer-text');
+const turnTimerDiv = document.getElementById('player-turn-timer');
+
+// ============================================================
+// FONCTIONS UI
+// ============================================================
+
+function createCardElement(value, suit, isBack = false) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.value = value;
+    card.dataset.suit = suit;
+    
+    if (!isBack && CardStyleManager) {
+        card.style.backgroundImage = `url('${CardStyleManager.getFrontAsset(value, suit)}')`;
+    } else if (CardStyleManager) {
+        card.style.backgroundImage = `url('${CardStyleManager.getBackAsset()}')`;
+    }
+    return card;
+}
+
+function createTableCardElement(value, suit) {
+    const card = document.createElement('div');
+    card.className = 'card table-card';
+    card.dataset.value = value;
+    card.dataset.suit = suit;
+    if (CardStyleManager) {
+        card.style.backgroundImage = `url('${CardStyleManager.getFrontAsset(value, suit)}')`;
+    }
+    return card;
+}
+
+function createCPUCardBack() {
+    const card = document.createElement('div');
+    card.style.width = '20px';
+    card.style.height = '30px';
+    if (CardStyleManager) {
+        card.style.backgroundImage = `url('${CardStyleManager.getBackAsset()}')`;
+    }
+    card.style.backgroundSize = 'cover';
+    card.style.border = '1px solid rgba(255,255,255,0.4)';
+    card.style.borderRadius = '3px';
+    return card;
+}
+
+function showTextPop(txt, isUser) {
+    const el = document.getElementById('announcement');
+    el.innerText = txt;
+    el.className = `announcement ${isUser ? 'text-green' : 'text-red'}`;
+    
+    if (window.gsap) {
+        window.gsap.fromTo(el, { opacity: 0, scale: 0.3 }, 
+            { opacity: 1, scale: 1.2, duration: 0.4, ease: "back.out" });
+        setTimeout(() => window.gsap.to(el, { opacity: 0, scale: 0.5, duration: 0.3 }), 1000);
+    } else {
+        el.style.opacity = '1';
+        setTimeout(() => el.style.opacity = '0', 1000);
+    }
+}
+
+function showToast(message, isError = false) {
+    let toast = document.querySelector('.global-toast');
+    if (toast) toast.remove();
+    
+    toast = document.createElement('div');
+    toast.className = 'global-toast';
+    toast.textContent = message;
+    toast.style.borderColor = isError ? '#E61E25' : '#FFD700';
+    toast.style.color = isError ? '#E61E25' : '#FFD700';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 2500);
+}
+
+function showCaptureModal(card, combos) {
+    const modal = document.getElementById('capture-modal');
+    const optionsDiv = document.getElementById('choice-options');
+    optionsDiv.innerHTML = '';
+    
+    combos.forEach(combo => {
+        const btn = document.createElement('div');
+        btn.className = 'choice-btn';
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.gap = '4px';
+        
+        combo.forEach(c => {
+            const i = document.createElement('div');
+            i.style.width = '35px';
+            i.style.height = '50px';
+            if (CardStyleManager) {
+                i.style.backgroundImage = `url('${CardStyleManager.getFrontAsset(c.value, c.suit)}')`;
+            }
+            i.style.backgroundSize = "contain";
+            row.appendChild(i);
+        });
+        
+        btn.appendChild(row);
+        btn.onclick = () => {
+            modal.style.display = 'none';
+            selectedCombo = combo;
+            game.playUserCard(game.userHand.findIndex(c => c.id === card.id));
+        };
+        optionsDiv.appendChild(btn);
+    });
+    
+    modal.style.display = 'flex';
+}
+
+function updateTimerDisplay(remaining) {
+    const percentage = (remaining / 10) * 100;
+    timerProgress.style.width = `${percentage}%`;
+    timerText.textContent = `${remaining}s`;
+    
+    if (remaining === 5) timerProgress.classList.add('warning');
+    if (remaining === 3) {
+        timerProgress.classList.remove('warning');
+        timerProgress.classList.add('critical');
+    }
+    if (remaining <= 0) {
+        timerProgress.classList.remove('warning', 'critical');
+    }
+}
+
+// ============================================================
+// CALLBACKS DU GAME ENGINE
+// ============================================================
+
+function onGameStateChange(type, data) {
+    switch (type) {
+        case 'render':
+            // Mettre à jour l'affichage
+            deckCountBadge.textContent = data.deckCount;
+            playerChkobbaBadge.textContent = data.userChkobba;
+            cpuChkobbaBadge.textContent = data.cpuChkobba;
+            
+            // Table
+            if (tableCardsDiv.children.length !== data.tableCards.length) {
+                tableCardsDiv.innerHTML = '';
+                data.tableCards.forEach(c => {
+                    tableCardsDiv.appendChild(createTableCardElement(c.value, c.suit));
+                });
+            }
+            
+            // Main joueur
+            playerHandDiv.innerHTML = '';
+            data.userHand.forEach((c, idx) => {
+                const cardEl = createCardElement(c.value, c.suit, false);
+                cardEl.onclick = () => game.playUserCard(idx);
+                playerHandDiv.appendChild(cardEl);
+            });
+            
+            // Main CPU (dos)
+            cpuHandDiv.innerHTML = '';
+            for (let i = 0; i < data.cpuHandCount; i++) {
+                cpuHandDiv.appendChild(createCPUCardBack());
+            }
+            break;
+            
+        case 'timer_update':
+            updateTimerDisplay(data.remaining);
+            break;
+            
+        case 'capture_choice':
+            showCaptureModal(data.card, data.combos);
+            break;
+    }
+}
+
+function onGameEnd(result) {
+    AudioEngine.play('roundEnd');
+    
+    if (result.timeout) {
+        showToast('⏰ Trop de temps écoulé !', true);
+        setTimeout(() => window.location.href = 'select-game.html', 2000);
+        return;
+    }
+    
+    // Afficher les résultats
+    displayResultModal(result.stats.pS, result.stats.cS, 
+        result.roundUserScore, result.roundCpuScore);
+}
+
+// ============================================================
+// ANIMATION DE MÉLANGE
+// ============================================================
+
+function runShuffleAnimation() {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('shuffle-overlay');
+        const deckZone = document.getElementById('deck-zone');
+        deckZone.style.visibility = 'hidden';
+        overlay.style.display = 'flex';
+        
+        if (window.gsap) {
+            window.gsap.set(".card-shuffle", { x: 0, rotationZ: 0, y: (i) => -i * 0.4 });
+            
+            const masterTl = window.gsap.timeline({ 
+                repeat: 1, 
+                onComplete: () => {
+                    overlay.style.display = "none";
+                    deckZone.style.visibility = 'visible';
+                    resolve();
+                }
+            });
+            
+            masterTl.to(".card-shuffle", { 
+                x: (i) => (i % 2 === 0 ? -120 : 120),
+                rotationZ: (i) => (i % 2 === 0 ? -15 : 15),
+                duration: 0.3,
+                stagger: { amount: 0.2, from: "end" },
+                ease: "power2.out"
+            }).to(".card-shuffle", {
+                x: 0, rotationZ: 0, duration: 0.3,
+                stagger: { amount: 0.2, from: "start" },
+                ease: "power2.in"
+            }, "-=0.1");
+        } else {
+            setTimeout(() => {
+                overlay.style.display = "none";
+                deckZone.style.visibility = 'visible';
+                resolve();
+            }, 800);
+        }
+    });
+}
+
+// ============================================================
+// AFFICHAGE DES RÉSULTATS
+// ============================================================
+
+function displayResultModal(ps, cs, pR, cR) {
+    const body = document.getElementById('score-table-body');
+    const winText = document.getElementById('match-winner-text');
+    const avatarContainer = document.getElementById('modal-avatars');
+    
+    const gameFinished = (game.globalPlayerScore >= 11 || game.globalCpuScore >= 11);
+    const playerWon = gameFinished && game.globalPlayerScore > game.globalCpuScore;
+    
+    if (gameFinished) {
+        winText.innerHTML = playerWon ? 
+            `<div style="color:#4CAF50; font-size:1.5rem;">VICTOIRE ! 🏆</div>` : 
+            `<div style="color:#FF3B30; font-size:1.5rem;">DÉFAITE !</div>`;
+        if (playerWon) AudioEngine.play('win');
+        else AudioEngine.play('lose');
+    } else {
+        winText.innerHTML = `<div style="font-size:1.4rem; color:#FFD700">Résultats de la manche</div>`;
+    }
+    
+    avatarContainer.innerHTML = `
+        <div style="text-align:center;"><div style="font-size:2rem;">${escapeHtml(ProfileStore.get().avatar || '😀')}</div><div>Moi</div></div>
+        <div style="text-align:center;"><div style="font-size:2rem;">🤖</div><div>CPU</div></div>
+    `;
+    
+    if (ps && cs) {
+        const data = [
+            ["Cartes", ps.cards, cs.cards, ps.cards > cs.cards, cs.cards > ps.cards],
+            ["Dinaris", ps.diamonds, cs.diamonds, ps.diamonds > cs.diamonds, cs.diamonds > ps.diamonds],
+            ["Bermila", ps.bermila ? '1' : '0', cs.bermila ? '1' : '0', ps.bermila, cs.bermila],
+            ["Haya (7♦)", ps.haya ? 1 : 0, cs.haya ? 1 : 0, ps.haya, cs.haya],
+            ["Chkobba", game.userChkobba, game.cpuChkobba, game.userChkobba > 0, game.cpuChkobba > 0],
+            ["Total Manche", pR, cR, pR > cR, cR > pR]
+        ];
+        body.innerHTML = data.map(r => `<tr class="${r[3] || r[4] ? 'win-row' : ''}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+    }
+    
+    document.getElementById('total-player').innerText = game.globalPlayerScore;
+    document.getElementById('total-cpu').innerText = game.globalCpuScore;
+    document.getElementById('score-target-label').textContent = 'Objectif: 11 pts';
+    
+    if (gameFinished && ProfileStore) {
+        ProfileStore.addMatch({
+            manchesGagnees: pR,
+            chkobbaRealises: game.userChkobba,
+            hayaCapture: ps?.haya || false,
+            victoireMatch: playerWon,
+            perfectWin: playerWon && game.globalCpuScore === 0,
+            scoreJoueur: game.globalPlayerScore,
+            scoreAdversaire: game.globalCpuScore
+        }, 'solo');
+    }
+    
+    const btn = document.getElementById('next-round-btn');
+    btn.onclick = () => {
+        AudioEngine.play('buttonClick');
+        document.getElementById('score-modal').style.display = 'none';
+        if (gameFinished) {
+            window.location.href = 'select-game.html';
+        } else {
+            startNewGame();
+        }
+    };
+    
+    document.getElementById('score-modal').style.display = 'flex';
+}
+
+// ============================================================
+// DÉMARRAGE DU JEU
+// ============================================================
+
+async function startNewGame() {
+    await runShuffleAnimation();
+    
+    // Créer une nouvelle instance du jeu
+    if (game) game.destroy();
+    
+    game = new ChkobbaGame({ mode: 'solo', difficulty: 'intermediaire' });
+    game.onStateChange = onGameStateChange;
+    game.onGameEnd = onGameEnd;
+    game.init();
+    game.dealer = Math.random() > 0.5 ? 'user' : 'cpu';
+    game.currentPlayer = game.dealer === 'user' ? 'cpu' : 'user';
+    
+    // Démarrage des tours
+    if (game.currentPlayer === 'cpu') {
+        setTimeout(() => game.cpuTurn(), 500);
+    } else {
+        game._startTimer();
+    }
+}
+
+// ============================================================
+// GESTION QUITTER
+// ============================================================
+function showQuitModal() {
+    document.getElementById('quit-modal').style.display = 'flex';
+}
+function hideQuitModal() {
+    document.getElementById('quit-modal').style.display = 'none';
+}
+function confirmQuit() {
+    if (ProfileStore && ProfileStore.get()) {
+        ProfileStore.addMatch({
+            manchesGagnees: 0, chkobbaRealises: 0, hayaCapture: false,
+            victoireMatch: false, perfectWin: false, abandon: true,
+            scoreJoueur: game?.globalPlayerScore || 0,
+            scoreAdversaire: game?.globalCpuScore || 0
+        }, 'solo');
+    }
+    window.location.href = 'select-game.html';
+}
+
+// ============================================================
+// SUPER POUVOIRS UI
+// ============================================================
+function openSuperPowersModal() {
+    const modal = document.getElementById('superpowers-modal');
+    const container = document.getElementById('superpowers-list');
+    
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div style="background:rgba(0,0,0,0.4);border-radius:14px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:2rem;">👁️</div>
+                <div style="flex:1;">
+                    <div style="color:#9C27B0;font-size:.8rem;">Super Eye</div>
+                    <div style="font-size:.6rem;color:rgba(255,255,255,.5);">Voir les cartes CPU</div>
+                </div>
+                <button onclick="activatePower('superEye')" style="padding:8px 16px;background:#9C27B0;border:none;border-radius:10px;color:white;cursor:pointer;min-width:44px;">ACTIVER</button>
+            </div>
+        </div>
+        <div style="background:rgba(0,0,0,0.4);border-radius:14px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:2rem;">💎7</div>
+                <div style="flex:1;">
+                    <div style="color:#E91E63;font-size:.8rem;">Super Haya</div>
+                    <div style="font-size:.6rem;color:rgba(255,255,255,.5);">Garantit le 7♦</div>
+                </div>
+                <button onclick="activatePower('super7aya')" style="padding:8px 16px;background:#E91E63;border:none;border-radius:10px;color:white;cursor:pointer;min-width:44px;">ACTIVER</button>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+}
+
+function closeSuperPowersModal() {
+    document.getElementById('superpowers-modal').style.display = 'none';
+}
+
+function activatePower(powerId) {
+    closeSuperPowersModal();
+    showToast(`Pouvoir ${powerId} activé !`);
+}
+
+// ============================================================
+// CHARGEMENT DE GSAP
+// ============================================================
+function loadGSAP() {
+    return new Promise((resolve) => {
+        if (typeof gsap !== 'undefined') {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+        script.onload = resolve;
+        document.head.appendChild(script);
+    });
+}
+
+// ============================================================
+// INITIALISATION
+// ============================================================
+window.onload = async () => {
+    await loadGSAP();
+    
+    // S'assurer que GSAP est disponible globalement
+    if (typeof gsap !== 'undefined') {
+        window.gsap = gsap;
+    }
+    
+    // Précharger le thème
+    if (CardStyleManager) {
+        CardStyleManager.preloadActiveTheme();
+    }
+    
+    startNewGame();
+};
+
+// Expositions globales
+window.showQuitModal = showQuitModal;
+window.hideQuitModal = hideQuitModal;
+window.confirmQuit = confirmQuit;
+window.openSuperPowersModal = openSuperPowersModal;
+window.closeSuperPowersModal = closeSuperPowersModal;
+window.activatePower = activatePower;
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</body>
+</html>

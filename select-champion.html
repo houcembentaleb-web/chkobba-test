@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chkobba - Mode Champions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Titan One', cursive;
+            background: radial-gradient(circle at center, #1E7245 0%, #0D4728 100%);
+            color: white;
+            overflow: hidden;
+        }
+        
+        #main-wrapper {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .avatar-box {
+            position: relative;
+            width: 55px;
+            height: 55px;
+            background: #E8F5E9;
+            border: 3px solid #0A321C;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 0 #0A321C;
+            cursor: pointer;
+        }
+        
+        .level-badge {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: #FFD700;
+            border: 2px solid #0A321C;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-size: 9px;
+            color: black;
+        }
+        
+        .pill {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid #0A321C;
+            border-radius: 20px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .coin-icon {
+            width: 25px;
+        }
+        
+        /* Title */
+        .selection-title {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .title-text {
+            font-size: 1.6rem;
+            text-shadow: 3px 3px 0 #0A321C;
+            color: #FFD700;
+        }
+        
+        .subtitle {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 12px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        
+        /* Slider */
+        .slider-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+            scroll-snap-type: x mandatory;
+            min-height: 0;
+            cursor: grab;
+        }
+        
+        .slider-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .slider-container::before,
+        .slider-container::after {
+            content: '';
+            min-width: calc(50% - 140px);
+        }
+        
+        .cpu-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-snap-align: center;
+            margin: 0 20px;
+        }
+        
+        .cpu-card {
+            width: 180px;
+            height: 240px;
+            background: #E8F5E9;
+            border: 4px solid #E8F5E9;
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 0 #0A321C;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .cpu-card-wrapper.selected .cpu-card {
+            transform: scale(1.05) rotate(-2deg);
+            border-color: #32CD32;
+            box-shadow: 0 15px 0 #0A321C;
+        }
+        
+        .card-full-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-label {
+            position: relative;
+            z-index: 2;
+            padding: 15px 0;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            font-size: 1.1rem;
+            text-shadow: 2px 2px black;
+            color: #FFD700;
+        }
+        
+        /* Footer */
+        .footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+        
+        .btn-play {
+            width: 250px;
+            height: 65px;
+            background: #E61E25;
+            border: 4px solid #0A321C;
+            border-radius: 18px;
+            color: white;
+            font-family: 'Titan One', cursive;
+            font-size: 1.8rem;
+            box-shadow: 0 6px 0 #0A321C;
+            text-shadow: 2px 2px #0A321C;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .btn-play:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0A321C;
+        }
+        
+        .bottom-icons {
+            display: flex;
+            align-items: center;
+            gap: 35px;
+        }
+        
+        .small-btn, .home-btn {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 4px 0 #0A321C;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .small-btn:active, .home-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #0A321C;
+        }
+        
+        .small-btn {
+            width: 55px;
+            height: 55px;
+            background: #E8F5E9;
+            border: 3px solid #0A321C;
+            border-radius: 12px;
+        }
+        
+        .home-btn {
+            width: 70px;
+            height: 70px;
+            background: #FFD700;
+            border: 4px solid #0A321C;
+            border-radius: 50%;
+        }
+        
+        .btn-img, .home-btn-img {
+            width: 130%;
+            height: 130%;
+            object-fit: contain;
+            position: absolute;
+            top: -15%;
+        }
+        
+        /* Jackpot Modal */
+        .jackpot-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .jackpot-content {
+            background: #0D4728;
+            border: 5px solid #FFD700;
+            border-radius: 30px;
+            padding: 25px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+        }
+        
+        .slots-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            background: #000;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .slot {
+            width: 70px;
+            height: 90px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .reel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: top 2.5s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+        }
+        
+        .slot-item {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-family: sans-serif;
+            font-weight: bold;
+            background: white;
+            font-size: 10px;
+        }
+        
+        .slot-item img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+        
+        .jackpot-result {
+            margin-top: 15px;
+        }
+        
+        .gold-text {
+            color: #FFD700;
+            font-size: 32px;
+        }
+        
+        .coin-small {
+            width: 30px;
+            vertical-align: middle;
+        }
+        
+        @media (max-width: 600px) {
+            .cpu-card {
+                width: 150px;
+                height: 210px;
+            }
+            .btn-play {
+                width: 220px;
+                height: 55px;
+                font-size: 1.5rem;
+            }
+            .slot {
+                width: 55px;
+                height: 75px;
+            }
+            .slot-item {
+                height: 75px;
+                font-size: 8px;
+            }
+            .slot-item img {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-wrapper">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" id="profile-btn">
+                <div class="avatar-box">
+                    <span id="player-avatar-display">😀</span>
+                    <div class="level-badge" id="player-level-badge">LVL 1</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; text-shadow: 2px 2px black" id="player-palier-display">Débutant</div>
+                    <div style="width: 60px; height: 8px; background: #0A321C; border-radius: 4px; margin-top: 3px">
+                        <div id="player-xp-bar" style="width: 0%; height: 100%; background: #FFD700; border-radius: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="pill">
+                    <img src="assets/nav/coin.png" class="coin-icon" alt="coins">
+                    <span style="color: #FFD700; font-size: 16px" id="player-coins">0</span>
+                </div>
+                <div class="pill" style="gap: 6px;">
+                    <img src="assets/nav/gem.png" class="coin-icon" alt="diamonds">
+                    <span style="color: #7EB2FF; font-size: 16px" id="player-diamonds">0</span>
+                </div>
+                <div id="menu-header-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; background: none; border: none; padding: 5px;">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 6H20M4 12H20M4 18H20" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <div class="selection-title">
+            <div class="title-text">CHOISIR TON ADVERSAIRE</div>
+            <div class="subtitle" id="cpuInfoDisplay">Niv.6 · 3 000 🪙 · 3 💎 · Max 25 000</div>
+        </div>
+
+        <main class="slider-container" id="cpuSlider">
+            <div class="cpu-card-wrapper" data-difficulty="novice">
+                <div class="cpu-card" data-difficulty="novice" data-mult="2" data-entry="500" data-diamonds="1" data-levelmin="1" data-maxgain="5000">
+                    <img src="assets/cpus/cpu-novice.jpg" class="card-full-img" alt="Novice">
+                    <div class="card-label">NOVICE</div>
+                </div>
+            </div>
+            <div class="cpu-card-wrapper" data-difficulty="debutant">
+                <div class="cpu-card" data-difficulty="debutant" data-mult="3" data-entry="1500" data-diamonds="2" data-levelmin="3" data-maxgain="12000">
+                    <img src="assets/cpus/cpu-debutant.png" class="card-full-img" alt="Débutant">
+                    <div class="card-label">DÉBUTANT</div>
+                </div>
+            </div>
+            <div class="cpu-card-wrapper selected" id="defaultCpu" data-difficulty="intermediaire">
+                <div class="cpu-card selected" data-difficulty="intermediaire" data-mult="4" data-entry="3000" data-diamonds="3" data-levelmin="6" data-maxgain="25000">
+                    <img src="assets/cpus/cpu-intermediaire.png" class="card-full-img" alt="Intermédiaire">
+                    <div class="card-label">INTERMÉDIAIRE</div>
+                </div>
+            </div>
+            <div class="cpu-card-wrapper" data-difficulty="expert">
+                <div class="cpu-card" data-difficulty="expert" data-mult="5" data-entry="6000" data-diamonds="5" data-levelmin="10" data-maxgain="50000">
+                    <img src="assets/cpus/cpu-expert.png" class="card-full-img" alt="Expert">
+                    <div class="card-label">EXPERT</div>
+                </div>
+            </div>
+            <div class="cpu-card-wrapper" data-difficulty="maitre">
+                <div class="cpu-card" data-difficulty="maitre" data-mult="6" data-entry="10000" data-diamonds="8" data-levelmin="15" data-maxgain="100000">
+                    <img src="assets/cpus/cpu-maitre.png" class="card-full-img" alt="Maître">
+                    <div class="card-label">MAÎTRE</div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <button class="btn-play" id="play-btn">JOUER</button>
+            <div class="bottom-icons">
+                <div class="small-btn" id="share-btn">
+                    <img src="assets/nav/share.png" class="btn-img" alt="Partager">
+                </div>
+                <div class="home-btn" id="home-btn">
+                    <img src="assets/nav/home.png" class="home-btn-img" alt="Accueil">
+                </div>
+                <div class="small-btn" id="settings-btn">
+                    <img src="assets/nav/settings.png" class="btn-img" alt="Paramètres">
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Jackpot Modal -->
+    <div id="jackpot-modal" class="jackpot-modal">
+        <div class="jackpot-content">
+            <div class="jackpot-title" style="color: #FFD700; font-size: 1.5rem;">🎰 JACKPOT 🎰</div>
+            <div class="slots-container">
+                <div class="slot"><div class="reel" id="reel0"></div></div>
+                <div class="slot"><div class="reel" id="reel1"></div></div>
+                <div class="slot"><div class="reel" id="reel2"></div></div>
+                <div class="slot"><div class="reel" id="reel3"></div></div>
+            </div>
+            <div class="jackpot-result">
+                <div id="total-pot-value" class="gold-text">0</div>
+                <img src="assets/nav/coin.png" class="coin-small" alt="coins">
+            </div>
+            <button id="confirm-jackpot" style="margin-top: 15px; padding: 12px 25px; background: #FFD700; border: none; border-radius: 12px; font-family: 'Titan One'; font-size: 1rem; cursor: pointer;">CONFIRMER</button>
+            <button id="close-jackpot" style="margin-top: 10px; padding: 8px 20px; background: transparent; border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; color: white; cursor: pointer;">FERMER</button>
+        </div>
+    </div>
+
+    <div id="toast-message" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); border: 2px solid #FFD700; border-radius: 30px; padding: 10px 20px; color: #FFD700; z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none;"></div>
+
+    <script type="module">
+        import { ProfileStore, ProfileUI } from './src/main.js';
+        
+        let selectedDifficulty = 'intermediaire';
+        let selectedMultiplier = 4;
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2500);
+        }
+        
+        function refreshHeader() {
+            const p = ProfileStore.get();
+            if (!p) return;
+            document.getElementById('player-coins').textContent = (p.coins || 0).toLocaleString();
+            document.getElementById('player-diamonds').textContent = p.diamonds || 0;
+            document.getElementById('player-level-badge').textContent = `LVL ${p.level || 1}`;
+            document.getElementById('player-avatar-display').textContent = p.avatar || '😀';
+            
+            let level = p.level || 1;
+            let palier = 'Débutant';
+            if (level >= 50) palier = 'Légende';
+            else if (level >= 30) palier = 'Maître';
+            else if (level >= 15) palier = 'Expert';
+            else if (level >= 6) palier = 'Intermédiaire';
+            else if (level >= 3) palier = 'Débutant';
+            else palier = 'Novice';
+            document.getElementById('player-palier-display').textContent = palier;
+            
+            let xp = p.xp || 0;
+            let lvl = 1, remaining = xp;
+            while (true) {
+                const needed = Math.floor(100 * Math.pow(1.08, lvl - 1));
+                if (remaining < needed) break;
+                remaining -= needed;
+                lvl++;
+            }
+            const needed = Math.floor(100 * Math.pow(1.08, lvl - 1));
+            const pct = Math.min(100, Math.round(remaining / needed * 100));
+            document.getElementById('player-xp-bar').style.width = `${pct}%`;
+        }
+        
+        function selectCpu(wrapper) {
+            document.querySelectorAll('.cpu-card-wrapper').forEach(w => {
+                w.classList.remove('selected');
+                w.querySelector('.cpu-card')?.classList.remove('selected');
+            });
+            wrapper.classList.add('selected');
+            wrapper.querySelector('.cpu-card')?.classList.add('selected');
+            
+            const cpuCard = wrapper.querySelector('.cpu-card');
+            selectedDifficulty = cpuCard.dataset.difficulty;
+            selectedMultiplier = parseInt(cpuCard.dataset.mult);
+            
+            const info = {
+                novice: 'Niv.1 · 500 🪙 · 1 💎 · Max 5 000',
+                debutant: 'Niv.3 · 1 500 🪙 · 2 💎 · Max 12 000',
+                intermediaire: 'Niv.6 · 3 000 🪙 · 3 💎 · Max 25 000',
+                expert: 'Niv.10 · 6 000 🪙 · 5 💎 · Max 50 000',
+                maitre: 'Niv.15 · 10 000 🪙 · 8 💎 · Max 100 000'
+            };
+            document.getElementById('cpuInfoDisplay').textContent = info[selectedDifficulty];
+            
+            wrapper.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+        
+        function startJackpot() {
+            const profile = ProfileStore.get();
+            const config = {
+                novice: { entry: 500, diamonds: 1, levelMin: 1 },
+                debutant: { entry: 1500, diamonds: 2, levelMin: 3 },
+                intermediaire: { entry: 3000, diamonds: 3, levelMin: 6 },
+                expert: { entry: 6000, diamonds: 5, levelMin: 10 },
+                maitre: { entry: 10000, diamonds: 8, levelMin: 15 }
+            };
+            const cfg = config[selectedDifficulty];
+            
+            if (profile.level < cfg.levelMin) {
+                showToast(`Niveau ${cfg.levelMin} requis !`);
+                return;
+            }
+            if (profile.coins < cfg.entry) {
+                showToast(`${cfg.entry.toLocaleString()} 🪙 requis !`);
+                return;
+            }
+            if (profile.diamonds < cfg.diamonds) {
+                showToast(`${cfg.diamonds} 💎 requis !`);
+                return;
+            }
+            
+            document.getElementById('jackpot-modal').style.display = 'flex';
+            
+            // Simuler le jackpot
+            const reel = document.getElementById('reel0');
+            reel.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const div = document.createElement('div');
+                div.className = 'slot-item';
+                div.innerHTML = `<img src="assets/jackpot/the.png"><span>Thé</span>`;
+                reel.appendChild(div);
+            }
+            
+            const totalPot = cfg.entry * selectedMultiplier;
+            document.getElementById('total-pot-value').textContent = totalPot.toLocaleString();
+            
+            localStorage.setItem('friendsJackpot', totalPot);
+            localStorage.setItem('selectedDifficulty', selectedDifficulty);
+            localStorage.setItem('betAmount', cfg.entry);
+        }
+        
+        function confirmAndPlay() {
+            const config = {
+                novice: { entry: 500, diamonds: 1 },
+                debutant: { entry: 1500, diamonds: 2 },
+                intermediaire: { entry: 3000, diamonds: 3 },
+                expert: { entry: 6000, diamonds: 5 },
+                maitre: { entry: 10000, diamonds: 8 }
+            };
+            const cfg = config[selectedDifficulty];
+            
+            const profile = ProfileStore.get();
+            if (profile.coins >= cfg.entry && profile.diamonds >= cfg.diamonds) {
+                profile.coins -= cfg.entry;
+                profile.diamonds -= cfg.diamonds;
+                ProfileStore.update({ coins: profile.coins, diamonds: profile.diamonds });
+                window.location.href = 'game-champions.html';
+            } else {
+                showToast('Fonds insuffisants !');
+                document.getElementById('jackpot-modal').style.display = 'none';
+            }
+        }
+        
+        // Événements
+        document.querySelectorAll('.cpu-card-wrapper').forEach(wrapper => {
+            wrapper.addEventListener('click', () => selectCpu(wrapper));
+        });
+        
+        document.getElementById('play-btn').addEventListener('click', startJackpot);
+        document.getElementById('confirm-jackpot').addEventListener('click', confirmAndPlay);
+        document.getElementById('close-jackpot').addEventListener('click', () => {
+            document.getElementById('jackpot-modal').style.display = 'none';
+        });
+        document.getElementById('home-btn').addEventListener('click', () => window.location.href = 'select-game.html');
+        document.getElementById('profile-btn').addEventListener('click', () => ProfileUI.show());
+        document.getElementById('settings-btn').addEventListener('click', () => window.UIRouter?.open('settings'));
+        document.getElementById('share-btn').addEventListener('click', () => {
+            if (navigator.share) navigator.share({ title: 'Chkobba', url: location.href });
+            else showToast('Copie le lien manuellement');
+        });
+        
+        // Initialisation
+        ProfileStore.subscribe(() => refreshHeader());
+        refreshHeader();
+        
+        setTimeout(() => {
+            document.getElementById('defaultCpu')?.scrollIntoView({ inline: 'center' });
+        }, 100);
+    </script>
+</body>
+</html>

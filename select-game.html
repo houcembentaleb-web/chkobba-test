@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chkobba - Sélection du mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Titan One', cursive;
+            background: radial-gradient(circle at center, #1E7245 0%, #0D4728 100%);
+            color: white;
+            overflow: hidden;
+        }
+        
+        #main-wrapper {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .avatar-box {
+            position: relative;
+            width: 55px;
+            height: 55px;
+            background: #E8F5E9;
+            border: 3px solid #0A321C;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 0 #0A321C;
+            cursor: pointer;
+        }
+        
+        .level-badge {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: #FFD700;
+            border: 2px solid #0A321C;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-size: 9px;
+            color: black;
+        }
+        
+        .pill {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid #0A321C;
+            border-radius: 20px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .coin-icon {
+            width: 25px;
+        }
+        
+        /* Navigation */
+        .mid-nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .nav-item {
+            width: 60px;
+            height: 60px;
+            background: #E8F5E9;
+            border: 3px solid #0A321C;
+            border-radius: 15px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 5px 0 #0A321C;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .nav-item:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #0A321C;
+        }
+        
+        .nav-img {
+            width: 140%;
+            height: 140%;
+            object-fit: contain;
+            position: absolute;
+            top: -35%;
+        }
+        
+        /* Slider */
+        .slider-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+            scroll-snap-type: x mandatory;
+            min-height: 0;
+            cursor: grab;
+        }
+        
+        .slider-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .slider-container::before,
+        .slider-container::after {
+            content: '';
+            min-width: calc(50% - 140px);
+        }
+        
+        .game-card {
+            min-width: 220px;
+            height: 320px;
+            background: #E8F5E9;
+            border: 4px solid #E8F5E9;
+            border-radius: 20px;
+            margin: 0 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 0 #0A321C;
+            scroll-snap-align: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .game-card.active {
+            transform: scale(1.1) rotate(-3deg);
+            border-color: #32CD32;
+            z-index: 10;
+            box-shadow: 0 15px 0 #0A321C;
+        }
+        
+        .card-full-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-label {
+            position: relative;
+            z-index: 2;
+            padding: 15px 0;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            font-size: 1.4rem;
+            text-shadow: 2px 2px black;
+            color: #FFD700;
+        }
+        
+        .mode-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #E61E25;
+            border: 2px solid white;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            color: white;
+            z-index: 3;
+        }
+        
+        .coming-soon {
+            opacity: 0.65;
+            filter: grayscale(0.4);
+        }
+        
+        .soon-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #FFD700;
+            border-radius: 16px;
+            z-index: 5;
+            backdrop-filter: blur(2px);
+        }
+        
+        /* Footer */
+        .footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+        
+        .btn-play {
+            width: 250px;
+            height: 65px;
+            background: #E61E25;
+            border: 4px solid #0A321C;
+            border-radius: 18px;
+            color: white;
+            font-family: 'Titan One', cursive;
+            font-size: 1.8rem;
+            box-shadow: 0 6px 0 #0A321C;
+            text-shadow: 2px 2px #0A321C;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .btn-play:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0A321C;
+        }
+        
+        .bottom-icons {
+            display: flex;
+            align-items: center;
+            gap: 35px;
+        }
+        
+        .small-btn, .center-btn {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 4px 0 #0A321C;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .small-btn:active, .center-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #0A321C;
+        }
+        
+        .small-btn {
+            width: 55px;
+            height: 55px;
+            background: #E8F5E9;
+            border: 3px solid #0A321C;
+            border-radius: 12px;
+        }
+        
+        .center-btn {
+            width: 70px;
+            height: 70px;
+            background: #FFD700;
+            border: 4px solid #0A321C;
+            border-radius: 50%;
+        }
+        
+        .btn-img, .center-btn-img {
+            width: 130%;
+            height: 130%;
+            object-fit: contain;
+            position: absolute;
+            top: -15%;
+        }
+        
+        .toast-message {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #FFD700;
+            border-radius: 30px;
+            padding: 10px 20px;
+            color: #FFD700;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .toast-message.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 600px) {
+            .game-card {
+                min-width: 180px;
+                height: 270px;
+            }
+            .card-label {
+                font-size: 1.1rem;
+            }
+            .btn-play {
+                width: 220px;
+                height: 55px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body data-no-float-ui="true">
+    <div id="main-wrapper">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" id="profile-btn">
+                <div class="avatar-box">
+                    <span id="player-avatar-display">😀</span>
+                    <div class="level-badge" id="player-level-badge">LVL 1</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; text-shadow: 2px 2px black" id="player-palier-display">Débutant</div>
+                    <div style="width: 60px; height: 8px; background: #0A321C; border-radius: 4px; margin-top: 3px">
+                        <div id="player-xp-bar" style="width: 0%; height: 100%; background: #FFD700; border-radius: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="pill">
+                    <img src="assets/nav/coin.png" class="coin-icon" alt="coins">
+                    <span style="color: #FFD700; font-size: 16px" id="player-coins">0</span>
+                </div>
+                <div class="pill" style="gap: 6px;">
+                    <img src="assets/nav/gem.png" class="coin-icon" alt="diamonds">
+                    <span style="color: #7EB2FF; font-size: 16px" id="player-diamonds">0</span>
+                </div>
+                <div id="menu-header-btn" style="display: flex; align-items: center; justify-content: center; cursor: pointer; background: none; border: none; padding: 5px;">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 6H20M4 12H20M4 18H20" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <nav class="mid-nav">
+            <div class="nav-item" id="trophy-btn">
+                <img src="assets/nav/trophy.png" class="nav-img" alt="Classement">
+            </div>
+            <div class="nav-item" id="friends-btn">
+                <img src="assets/nav/friends.png" class="nav-img" alt="Amis">
+            </div>
+            <div class="nav-item" id="gift-btn">
+                <img src="assets/nav/gift.png" class="nav-img" alt="Cadeaux">
+            </div>
+        </nav>
+
+        <main class="slider-container" id="gameSlider">
+            <div class="game-card active" data-mode="solo">
+                <img src="assets/avatars/solo.png" class="card-full-img" alt="Mode Solo">
+                <div class="mode-badge">1 VS CPU</div>
+                <div class="card-label">SOLO</div>
+            </div>
+            <div class="game-card" data-mode="champions">
+                <img src="assets/avatars/champions.png" class="card-full-img" alt="Mode Champions">
+                <div class="mode-badge">5 NIVEAUX · MISE</div>
+                <div class="card-label">CHAMPIONS</div>
+            </div>
+            <div class="game-card coming-soon" data-mode="amis">
+                <img src="assets/avatars/amis.png" class="card-full-img" alt="Mode Amis">
+                <div class="mode-badge">PROCHAINEMENT</div>
+                <div class="card-label">AMIS</div>
+                <div class="soon-overlay">👥 Bientôt</div>
+            </div>
+            <div class="game-card coming-soon" data-mode="tournoi">
+                <img src="assets/avatars/multijoueur.png" class="card-full-img" alt="Mode Tournoi">
+                <div class="mode-badge">PROCHAINEMENT</div>
+                <div class="card-label">TOURNOI</div>
+                <div class="soon-overlay">🏆 Bientôt</div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <button class="btn-play" id="play-btn">JOUER</button>
+            <div class="bottom-icons">
+                <div class="small-btn" id="share-btn">
+                    <img src="assets/nav/share.png" class="btn-img" alt="Partager">
+                </div>
+                <div class="center-btn" id="shop-btn">
+                    <img src="assets/nav/shop.png" class="center-btn-img" alt="Boutique">
+                </div>
+                <div class="small-btn" id="settings-btn">
+                    <img src="assets/nav/settings.png" class="btn-img" alt="Paramètres">
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="toast-message" class="toast-message"></div>
+
+    <script type="module">
+        import { ProfileStore, ProfileUI, ModalManager } from './src/main.js';
+        
+        let selectedMode = 'solo';
+        const slider = document.getElementById('gameSlider');
+        
+        // Rafraîchir l'affichage du header
+        function refreshHeader() {
+            const p = ProfileStore.get();
+            if (!p) return;
+            
+            document.getElementById('player-coins').textContent = (p.coins || 0).toLocaleString();
+            document.getElementById('player-diamonds').textContent = p.diamonds || 0;
+            document.getElementById('player-level-badge').textContent = `LVL ${p.level || 1}`;
+            document.getElementById('player-avatar-display').textContent = p.avatar || '😀';
+            document.getElementById('player-palier-display').textContent = getPalierName(p.level || 1);
+            
+            const prog = getProgression(p.xp || 0);
+            document.getElementById('player-xp-bar').style.width = `${prog.pct}%`;
+        }
+        
+        function getPalierName(level) {
+            if (level >= 50) return 'Légende';
+            if (level >= 30) return 'Maître';
+            if (level >= 15) return 'Expert';
+            if (level >= 6) return 'Intermédiaire';
+            if (level >= 3) return 'Débutant';
+            return 'Novice';
+        }
+        
+        function getProgression(xp) {
+            let level = 1, remaining = xp;
+            while (true) {
+                const needed = Math.floor(100 * Math.pow(1.08, level - 1));
+                if (remaining < needed) break;
+                remaining -= needed;
+                level++;
+            }
+            const needed = Math.floor(100 * Math.pow(1.08, level - 1));
+            return { current: remaining, needed, pct: Math.min(100, Math.round(remaining / needed * 100)), level };
+        }
+        
+        function showToast(message, duration = 2500) {
+            const toast = document.getElementById('toast-message');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        
+        function selectGame(el) {
+            document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedMode = el.dataset.mode;
+            el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+        
+        function launchGame() {
+            if (selectedMode === 'solo') {
+                window.location.href = 'game-solo.html';
+            } else if (selectedMode === 'champions') {
+                window.location.href = 'select-champion.html';
+            } else {
+                showToast('Mode bientôt disponible !');
+            }
+        }
+        
+        // Événements
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', () => selectGame(card));
+        });
+        
+        document.getElementById('play-btn').addEventListener('click', launchGame);
+        document.getElementById('profile-btn').addEventListener('click', () => ProfileUI.show());
+        document.getElementById('menu-header-btn').addEventListener('click', () => window.UIRouter?.open('menu'));
+        document.getElementById('settings-btn').addEventListener('click', () => window.UIRouter?.open('settings'));
+        document.getElementById('shop-btn').addEventListener('click', () => window.location.href = 'shop.html');
+        document.getElementById('share-btn').addEventListener('click', () => {
+            if (navigator.share) {
+                navigator.share({ title: 'Chkobba', url: location.href });
+            } else {
+                showToast('Copie le lien manuellement');
+            }
+        });
+        
+        document.getElementById('trophy-btn').addEventListener('click', () => showToast('Classement bientôt disponible'));
+        document.getElementById('friends-btn').addEventListener('click', () => showToast('Amis bientôt disponible'));
+        document.getElementById('gift-btn').addEventListener('click', () => showToast('Cadeaux bientôt disponible'));
+        
+        // Scroll detection
+        let scrollTimeout;
+        slider.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const center = slider.scrollLeft + slider.offsetWidth / 2;
+                const cards = document.querySelectorAll('.game-card');
+                let closest = null, minDist = Infinity;
+                cards.forEach(card => {
+                    const dist = Math.abs(center - (card.offsetLeft + card.offsetWidth / 2));
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closest = card;
+                    }
+                });
+                if (closest && minDist < 100) {
+                    selectGame(closest);
+                }
+            }, 150);
+        });
+        
+        // Initialisation
+        ProfileStore.subscribe(() => refreshHeader());
+        refreshHeader();
+        
+        // Centrer la carte par défaut
+        setTimeout(() => {
+            document.querySelector('.game-card.active')?.scrollIntoView({ inline: 'center' });
+        }, 100);
+    </script>
+</body>
+</html>
